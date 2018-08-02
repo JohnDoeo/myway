@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.xasxt.ems.dao.QuestionDaoMapper">
+
+	<sql id="commsql">
+		SELECT
+		tq.qid,tq.uid,tq.question,tq.reply,tq.questiontime,tq.type,
+		tq.replytime,tq.tid,tu.uname,uu.uname AS tname,tq.state,tq.remark
+		FROM t_question tq
+		LEFT JOIN t_user tu ON tq.uid=tu.uid
+		LEFT JOIN
+		t_user_role tur ON tu.uid=tur.uid
+		LEFT JOIN t_role tr ON tur.rid=tr.rid
+		LEFT JOIN t_user uu ON tq.tid=uu.uid
+	</sql>
+
+	<select id="findQuestionWithPage" resultType="Question">
+		<include refid="commsql" />
+		<where>
+			<if test="uId!=null and uId!=''">
+				tu.uid=#{uId} and tq.state='0'
+			</if>
+			<if test="tId!=null and tId!=''">
+				and tq.tid=#{tId} and tq.state='1'
+			</if>
+		</where>
+		<if test="page!=null and rows!=null">
+			limit #{page},#{rows}
+		</if>
+	</select>
+
+	<select id="getQuestionCount" resultType="int">
+		select count(*) from
+		t_question
+	</select>
+
+	<!-- 获得所有教师(包括班主任和老师)信息 -->
+	<select id="findAllTeacherReply" resultType="User">
+		select
+		tu.uid,tu.uname
+		from t_user tu left join t_user_role tur on
+		tu.uid=tur.uid left join
+		t_role tr on tr.rid=tur.rid where tr.rname="2" 
+		 or tr.rname="4"
+	</select>
+
+	<insert id="addQuestionInfo">
+		INSERT INTO
+		t_question(uid,question,questiontime,tid,type,remark)
+		VALUES(#{uId},#{question},#{questionTime},#{tId},#{type},#{remark})
+	</insert>
+
+	<update id="removeQuestionInfo">
+		delete from t_question where qid=#{qId}
+	</update>
+
+	<select id="getQuestionInfoById" resultType="Question">
+		<include refid="commsql" />
+		where tq.qid=#{qId}
+	</select>
+	<update id="editQuestionInfo">
+		update t_question
+		<set>
+			<if test="uId != null and uId != ''">
+				uid=#{uId},
+			</if>
+			<if test="type != null and type != ''">
+				type=#{type},
+			</if>
+			<if test="question != null and question != ''">
+				question=#{question},
+			</if>
+			<if test="reply != null and reply != ''">
+				reply=#{reply},
+			</if>
+			<if test="replyTime != null and replyTime != ''">
+				replyTime=#{replyTime},
+			</if>
+			<if test="questionTime != null and questionTime != ''">
+				questionTime=#{questionTime},
+			</if>
+			<if test="tId != null and tId != ''">
+				tId=#{tId},
+			</if>
+			<if test="remark != null and remark != ''">
+				remark=#{remark},
+			</if>
+			<if test="state != null and state != ''">
+				state=#{state}
+			</if>
+		</set>
+		<where>
+			<if test="qId != null and qId != ''">
+				qid=#{qId}
+			</if>
+		</where>
+	</update>
+
+	<update id="commitQuestion">
+		update t_question set state='1'
+		,questionTime=#{questionTime} where qid=#{qId}
+	</update>
+
+	<select id="getQuestionList" resultType="Question">
+		SELECT TYPE,COUNT(qid) AS COUNT FROM t_question GROUP BY TYPE
+	</select>
+</mapper>

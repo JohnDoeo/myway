@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.xasxt.ems.dao.ChangeClassDaoMapper">
+	<sql id="commsql">
+		select tcc.ccid,tcc.uid,tcc.reasion,tcc.apptime,tcc.appcontext,
+		tcc.appstate,tcc.tid ,tcc.committime,
+		tu.uname,uu.uname as tname,tcc.remark
+		from t_change_class tcc
+		left join t_user tu on tcc.uid=tu.uid
+		left join t_user_role tur on tu.uid=tur.uid
+		left join t_role tr on tur.rid=tr.rid
+		left join t_user uu on tcc.tid=uu.uid
+	</sql>
+	<select id="findChangeClassWithPage" resultType="ChangeClass">
+		<include refid="commsql" />
+		<where>
+			<if test="uId != null and uId != null">
+				tcc.uid=#{uId} and tcc.state="0"
+			</if>
+			<if test="tId != null and tId != null">
+				and tcc.tid=#{tId} and tcc.state="1"
+			</if>
+		</where>
+		limit #{page},#{rows}
+	</select>
+	
+	<select id="getChangeClassCount" resultType="int">
+		select count(*) from t_change_class
+	</select>
+	
+	<insert id="addChangeClassInfo">
+		insert into t_change_class(uid,reasion,remark,tid)
+		values(#{uId},#{reasion},#{remark},#{tId})
+	</insert>
+	
+	<update id="removeChangeClassInfo">
+		delete from t_change_class where ccid=#{ccId}
+	</update>
+	
+	<select id="getChangeClassInfoById" resultType="ChangeClass">
+		<include refid="commsql"/>
+		where tcc.ccid=#{ccId}
+	</select>
+	
+	<update id="editChangeClassInfo">
+		update t_change_class 
+		<set>
+			<if test="uId != null and uId != ''">
+				uid=#{uId},
+			</if>
+			<if test="appContext != null and appContext != ''">
+				appcontext=#{appContext},
+			</if>
+			<if test="appState != null and appState != ''">
+				appstate=#{appState},
+			</if>
+			<if test="appTime != null and appTime != ''">
+				apptime=#{appTime},
+			</if>
+			<if test="commitTime != null and commitTime != ''">
+				committime=#{commitTime},
+			</if>
+			<if test="state != null and state != ''">
+				state=#{state},
+			</if>
+			<if test="reasion != null and reasion != ''">
+				reasion=#{reasion},
+			</if>
+			<if test="remark != null and remark != ''">
+				remark=#{remark},
+			</if>
+			<if test="tId != null and tId != ''">
+				tId=#{tId}
+			</if>
+		</set>
+		where ccid=#{ccId}
+	</update>
+	
+	<update id="commitChangeClass">
+		update t_change_class set state="1",committime=#{commitTime} where ccid=#{ccId}
+	</update>
+</mapper>

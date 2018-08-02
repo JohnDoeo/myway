@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.xasxt.ems.dao.CourseDaoMapper">
+
+	<select id="findCourseWithPage" resultType="Course">
+		SELECT tc.cid,tc.name,tc.remark,tc.tid,tu.uname
+		AS tname FROM t_course tc LEFT JOIN t_user tu
+		ON tc.tid=tu.uid limit #{page} ,#{rows}
+	</select>
+
+	<select id="getCourseCount" resultType="int">
+		select count(*) from
+		t_course
+	</select>
+
+	<insert id="addCourseInfo">
+		insert into t_course(name,remark,tid)
+		values(#{name},#{remark},#{tId})
+	</insert>
+
+	<update id="removeCourseInfo">
+		delete from t_course where cid=#{cId}
+	</update>
+
+	<select id="getCourseInfoById" resultType="Course">
+		select tc.name,tc.remark,tc.tid,tu.uname,tu.uid
+		from t_course tc left join t_user tu on
+		 tc.tid=tu.uid where cid=#{cId}
+	</select>
+
+	<update id="editCourseInfo">
+		update t_course set
+		name=#{name},remark=#{remark},tid=#{tId} where cid=#{cId}
+	</update>
+
+	<select id="getTeachTeacher" resultType="User">
+		SELECT tu.uid,tu.uname FROM t_user tu
+		LEFT JOIN t_user_role tur ON tu.uid=tur.uid
+		LEFT JOIN t_role tr ON tur.rid=tr.rid
+		WHERE tr.rid=3
+	</select>
+</mapper>

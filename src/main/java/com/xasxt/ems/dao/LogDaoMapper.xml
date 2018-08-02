@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.xasxt.ems.dao.LogDaoMapper">
+
+	<sql id="commsql">
+		SELECT
+		tl.logid,tl.uid,tl.loginTIme,tl.logoutTime,tl.ip,tu.`uname`
+		FROM t_log tl LEFT JOIN t_user tu
+		ON tl.uid=tu.uid
+	</sql>
+
+	<select id="findLogWithPage" resultType="Log">
+		<include refid="commsql" />
+		limit #{page},#{rows}
+	</select>
+
+	<select id="getLogCount" resultType="int">
+		select count(*) from t_log
+	</select>
+
+	<insert id="addLogInfo">
+		INSERT INTO t_log(uid,logintime,ip,logouttime)
+		VALUES(#{uId},#{loginTime},#{ip},#{logoutTime})
+	</insert>
+
+	<update id="updateLogInfo">
+		UPDATE t_log SET logouttime=#{logoutTime} WHERE
+		logintime=#{loginTime}
+	</update>
+
+	<!-- <resultMap type="Log" id="logMapper"> <id property="logId" column="logid"/> 
+		<result property="loginTime" column="logintime"/> <result property="logoutTime" 
+		column="logouttime"/> <collection property=""></collection> </resultMap> -->
+
+	<select id="getLogList" resultType="Log">
+		SELECT
+		tl.logid,COUNT(tl.logid) AS logincount,tl.uid,tu.uname
+		FROM t_log tl LEFT JOIN t_user tu ON tl.uid=tu.uid GROUP BY tl.uid
+	</select>
+
+</mapper>

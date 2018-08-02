@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.xasxt.ems.dao.GradeDaoMapper">
+
+	<sql id="commsql">
+		SELECT
+		tg.gradeid,tg.gname,tg.classtype,tg.starttime,
+		tg.endtime,tg.state,tu.uname,tg.remark,tu.uid
+		FROM t_grade tg LEFT JOIN t_user tu ON tg.uid=tu.uid
+	</sql>
+	
+	<select id="findGradeWithPage" resultType="Grade">
+		<include refid="commsql"/>
+		<where>
+			<if test="gName != null and gName != ''">
+				tg.gname like '%${gName}%'
+			</if>
+			<if test="startTime != null and startTime != ''">
+				and tg.starttime like '%${startTime}%'
+			</if>
+			<if test="endTime != null and endTime != ''">
+				and tg.endtime like '%${endTime}%'
+			</if>
+			<if test="classType != null and classType != ''">
+				and tg.classtype like '%${classType}%'
+			</if>
+			<if test="state != null and state != ''">
+				and tg.state like '%${state}%'
+			</if>
+		</where>
+		limit #{page},#{rows}
+	</select>
+	
+	<select id="getGradeCount" resultType="int">
+		select count(*) from t_grade
+	</select>
+	
+	<insert id="addGradeInfo">
+		 INSERT INTO t_grade
+		 (gname,classtype,starttime,endtime,state,remark,uid)
+		  VALUES
+		  (#{gName},#{classType},#{startTime},#{endTime},#{state},#{remark},#{uId})
+	</insert>
+	
+	<update id="removeGradeInfo">
+		 DELETE FROM t_grade WHERE gradeid=#{gradeId}
+	</update>
+	
+	<select id="getGradeInfoById" resultType="Grade">
+		<include refid="commsql"/>
+		where gradeid=#{gradeId}
+	</select>
+	
+	<update id="editGradeInfo">
+		 UPDATE t_grade SET
+		 uid=#{uId},
+		  gname=#{gName} ,
+		  classtype=#{classType} ,
+		  starttime=#{startTime} ,
+		  endtime=#{endTime} ,
+		  state=#{state} ,
+		  remark=#{remark}
+		  where gradeid=#{gradeId}
+	</update>
+
+	<select id="getAllGrade" resultType="Grade">
+		<include refid="commsql"/>
+	</select>
+</mapper>

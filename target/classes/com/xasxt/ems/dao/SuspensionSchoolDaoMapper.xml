@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.xasxt.ems.dao.SuspensionSchoolDaoMapper">
+
+	<sql id="commsql">
+		SELECT tss.ssid,tss.uid,tss.reasion,tss.days,tss.committime,tss.apptime,
+		tss.appcontext,tss.appstate,tss.remark,tss.tid,tu.uname,uu.uname AS
+		tname
+		FROM t_suspension_school tss
+		LEFT JOIN t_user tu ON tss.uid=tu.uid
+		LEFT JOIN t_user_role tur ON tu.uid=tur.uid
+		LEFT JOIN t_role tr ON tur.rid=tr.rid
+		LEFT JOIN t_user uu ON tss.tid=uu.uid
+	</sql>
+
+	<select id="findSuspensionSchoolWithPage" resultType="SuspensionSchool">
+		<include refid="commsql" />
+		<where>
+			<if test="uId!=null and uId!=''">
+				tu.uid=#{uId} and tss.state='0'
+			</if>
+			<if test="tId!=null and tId!=''">
+				and tss.tid=#{tId} and tss.state='1'
+			</if>
+		</where>
+		limit #{page},#{rows}
+	</select>
+	
+	<select id="getSuspensionSchoolCount" resultType="int">
+		select count(*) from t_suspension_school
+	</select>
+	
+	<insert id="addSuspensionSchoolInfo">
+		insert into t_suspension_school 
+		(uid,reasion,days,committime,remark,tid)
+		values
+		(#{uId},#{reasion},#{days},#{commitTime},#{remark},#{tId})
+	</insert>
+	
+	<update id="removeSuspensionSchoolInfo">
+		delete from t_suspension_school where 
+		ssid=#{ssId}
+	</update>
+	
+	<select id="getSuspensionSchoolInfoById" resultType="SuspensionSchool">
+		<include refid="commsql"/>
+		where tss.ssid=#{ssId}
+	</select>
+	
+	<update id="editSuspensionSchoolClassInfo">
+		update t_suspension_school 
+		<set>
+			<if test="uId != null and uId != ''">
+				uid=#{uId},
+			</if>
+			<if test="reasion != null and reasion != ''">
+				reasion=#{reasion},
+			</if>
+			<if test="appContext != null and appContext != ''">
+				appcontext=#{appContext},
+			</if>
+			<if test="appState != null and appState != ''">
+				appstate=#{appState},
+			</if>
+			<if test="commitTime != null and commitTime != ''">
+				committime=#{commitTime},
+			</if>
+			<if test="state != null and state != ''">
+				state=#{state},
+			</if>
+			<if test="remark != null and remark != ''">
+				remark=#{remark},
+			</if>
+			<if test="appTime != null and appTime != ''">
+				apptime=#{appTime},
+			</if>
+			<if test="days != null and days != ''">
+				days=#{days},
+			</if>
+			<if test="tId != null and tId != ''">
+				tid=#{tId},
+			</if>
+		</set>
+		where ssid=#{ssId}
+	</update>
+	
+	<update id="commitSuspensionSchool">
+		update t_suspension_school set state="1",committime=#{commitTime} where ssid=#{ssId}
+	</update>
+</mapper>

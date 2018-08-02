@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.3.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.3.xsd">
+	<!-- 配置包扫描 -->
+	<context:component-scan base-package="com.xasxt.ems" />
+
+	<!-- 配置数据库连接信息,读取jdbc.properties文件 -->
+	<bean
+		class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations" value="classpath*:jdbc.properties" />
+		<!--这才是正确的配置方法 -->
+	</bean>
+	
+	<!-- 配置第三方数据连接数据库 -->
+	<bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource" destroy-method="close">
+		<property name="username" value="${username}"></property>
+		<property name="password" value="${password}"></property>
+		<property name="driverClassName" value="${driver}"></property>
+		<property name="url" value="${url}"></property>
+		<property name="filters" value="${filters}"></property>
+	</bean>
+	
+	<!-- 配置事务管理者 -->
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource"></property>
+	</bean>
+	
+	<!-- 配置事务管理模式 -->
+	<tx:annotation-driven transaction-manager="transactionManager"/>
+	
+	<!-- 配置spring管理mybatis的SqlSessionFactory对象 -->
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<!-- 引用数据源 -->
+		<property name="dataSource" ref="dataSource"></property>
+		<!-- 配置javabean的包别名(此项配置可以让Mapper.xml文件中引用javabean时不用写包名) -->
+		<property name="typeAliasesPackage" value="com.xasxt.ems.bean"></property>
+		<!-- 配置数据访问xml文件 -->
+		<property name="mapperLocations" value="classpath:com/xasxt/ems/dao/*Mapper.xml"></property>
+		<!-- 配置读取mybatis.xml文件 -->
+		<property name="configLocation" value="classpath:mybatis.xml"></property>
+	</bean>
+	
+	<!-- 扫描dao包 -->
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.xasxt.ems.dao"></property>
+	</bean>
+	
+	<!-- 配置自己定义的MyRealm让spring管理 -->
+	<bean id="myRealm" class="com.xasxt.ems.utils.MyRealm"></bean>
+	 
+	<!-- 配置shiro的安全管理器，让spring管理 -->
+	<bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+		<property name="realm" ref="myRealm"></property>
+	</bean>
+	
+	<!-- 配置shiro的生命周期，让spring管理 lifecycleBeanPostProcessor-->
+	<bean id="lifecycleBeanPostProcessor" class="org.apache.shiro.spring.LifecycleBeanPostProcessor"></bean>
+	
+	<!-- 配置shiro认证访问资源(这里bean的id要与web.xml配置文件中的shiro的过滤器中的filter-name一致) -->
+	<bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+		<property name="securityManager" ref="securityManager"></property>
+		<property name="filterChainDefinitions">
+			<value>
+				/login.do=anon
+				/jquery/**=anon
+				/** = authc
+			</value>
+		</property>
+	</bean>
+
+</beans>

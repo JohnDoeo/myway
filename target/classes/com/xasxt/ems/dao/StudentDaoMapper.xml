@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.xasxt.ems.dao.StudentDaoMapper">
+
+	<sql id="commsql">
+		SELECT
+		ts.sid,
+		ts.sname,
+		ts.snum,
+		ts.sex,
+		ts.stel,
+		ts.school,
+		ts.company,
+		ts.major,
+		ts.idcard,
+		ts.graduatetime,
+		ts.estate,
+		ts.employmentdate,
+		ts.remark,
+		tu.uname,
+		tg.gradeid,
+		tg.gname
+		FROM t_student
+		ts
+		LEFT
+		JOIN t_user tu ON
+		ts.uid=tu.uid
+		LEFT JOIN t_grade tg ON
+		ts.gradeid=tg.gradeid
+	</sql>
+	<select id="findStudentWithPage" resultType="Student">
+		<include refid="commsql" />
+		<where>
+			<if test="sName != null and sName != ''">
+				ts.sname like '%${sName}%'
+			</if>
+			<if test="gName != null and gName != ''">
+				and tg.gname like '%${gName}%'
+			</if>
+			<if test="sex != null and sex != ''">
+				and ts.sex like '%${sex}%'
+			</if>
+			<if test="eState != null and eState != ''">
+				and ts.estate like '%${eState}%'
+			</if>
+		</where>
+		<if test="page!=null and rows!=null">
+			limit #{page},#{rows}
+		</if>
+	</select>
+
+	<select id="getStudentById" resultType="Student">
+		<include refid="commsql" />
+		where sid=#{sId}
+	</select>
+
+	<select id="getGradeList" resultType="Grade">
+		SELECT * FROM t_grade
+	</select>
+
+	<select id="getStudentCount" resultType="int">
+		select count(*) from
+		t_student
+	</select>
+
+	<insert id="addStudentInfo">
+		INSERT INTO t_student
+		(uid,sname,sex,stel,school,
+		major,idcard,employmentdate,snum,
+		<if test="eState != null and eState != ''">
+			estate,
+		</if>
+		gradeid,company,remark,graduatetime)
+		VALUES(#{uId},#{sName},#{sex},
+		#{sTel},#{school},#{major},
+		#{idCard},#{employmentDate},#{sNum},
+		<if test="eState != null and eState != ''">
+			#{eState},
+		</if>
+		#{gradeId},#{company},#{remark},#{graduateTime})
+	</insert>
+
+	<select id="getGradeIdByName" resultType="int">
+		SELECT gradeid FROM
+		t_grade WHERE gname=#{gName}
+	</select>
+
+	<update id="delStudentInfo">
+		delete from t_student where sid =#{sId}
+	</update>
+
+	<update id="editStudentInfo">
+		update t_student
+		<set>
+			<if test="uId != null and uId != ''">
+				uid=#{uId},
+			</if>
+			<if test="sNum != null and sNum != ''">
+				snum=#{sNum},
+			</if>
+			<if test="sName != null and sName != ''">
+				sname=#{sName},
+			</if>
+			<if test="sex != null and sex != ''">
+				sex=#{sex},
+			</if>
+			<if test="sTel != null and sTel != ''">
+				stel=#{sTel},
+			</if>
+			<if test="school != null and school != ''">
+				school=#{school},
+			</if>
+			<if test="major != null and major != ''">
+				major=#{major},
+			</if>
+			<if test="idCard != null and idCard != ''">
+				idcard=#{idCard},
+			</if>
+			<choose>
+				<when test="employmentDate != null and employmentDate != ''">
+					employmentdate=#{employmentDate},
+				</when>
+				<otherwise>
+					employmentdate='',
+				</otherwise>
+			</choose>
+			<if test="gradeId != null and gradeId != ''">
+				gradeid=#{gradeId},
+			</if>
+			<choose>
+				<when test="eState != null and eState != ''">
+					estate=#{eState},
+				</when>
+				<otherwise>
+					estate='',
+				</otherwise>
+			</choose>
+			<choose>
+				<when test="company != null and company != ''">
+					company=#{company},
+				</when>
+				<otherwise>
+					company='',
+				</otherwise>
+			</choose>
+			<if test="remark != null and remark != ''">
+				remark=#{remark},
+			</if>
+			<if test="graduateTime != null and graduateTime != ''">
+				graduatetime=#{graduateTime}
+			</if>
+		</set>
+		where sid=#{sId}
+	</update>
+
+	<select id="getStudentListForState" resultType="Student">
+		<!-- SELECT estate,COUNT(sid)AS COUNT FROM t_student GROUP BY estate -->
+		SELECT estate, COUNT(sid) AS COUNT,
+		GROUP_CONCAT(sex) AS sexs FROM
+		t_student GROUP BY estate
+	</select>
+
+</mapper>

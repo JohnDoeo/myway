@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.xasxt.ems.dao.LeaveDaoMapper">
+	<sql id="commsql">
+		SELECT
+		tl.lid,tu.uname,tu.uid,tl.reasion,tl.days,
+		tl.appcontext,tl.appstate,tl.apptime,tl.committime,
+		tl.remark,(SELECT
+		uname FROM t_user WHERE uid=tl.tid)
+		AS tname,tl.tid
+		FROM t_leave
+		tl LEFT JOIN t_user tu ON tl.uid=tu.uid
+		LEFT
+		JOIN t_user_role tur ON
+		tu.uid=tur.uid
+	</sql>
+	<select id="findLeaveWithPage" resultType="Leave">
+		<include refid="commsql" />
+		<where>
+			<if test="uId!=null and uId!=''">
+				tu.uid=#{uId} and tl.cstate='0'
+			</if>
+			<if test="tId!=null and tId!=''">
+				and tl.tid=#{tId} and tl.cstate='1'
+			</if>
+		</where>
+		limit #{page},#{rows}
+	</select>
+
+	<select id="getLeaveInfoById" resultType="Leave">
+		<include refid="commsql" />
+		where tl.lid=#{lId}
+	</select>
+
+	<select id="getLeaveCount" resultType="int">
+		select count(*) from
+		t_leave
+	</select>
+
+	<insert id="addLeaveInfo">
+		insert into
+		t_leave(uid,reasion,days,appcontext,remark,tid)
+		values(#{uId},#{reasion},#{days},#{appContext},#{remark},#{tId})
+	</insert>
+
+	<!-- 获得所有班主任信息 -->
+	<select id="findAllTeacher" resultType="User">
+		select tu.uid,tu.uname
+		from t_user tu left join t_user_role tur on tu.uid=tur.uid left join
+		t_role tr on tr.rid=tur.rid where tr.rname="4"
+	</select>
+
+	<update id="removeLeaveInfo">
+		DELETE FROM t_leave WHERE lid=#{lId}
+	</update>
+
+	<update id="commitLeave">
+		update t_leave set cstate="1",committime=#{commitTime} where lid=#{lId}
+	</update>
+
+	<update id="editLeaveInfo">
+		update t_leave
+		<set>
+			<if test="reasion != null and reasion != ''">
+				reasion=#{reasion},
+			</if>
+			<if test="days != null and days != ''">
+				days=#{days},
+			</if>
+			<if test="appContext != null and appContext != ''">
+				appcontext=#{appContext},
+			</if>
+			<if test="appState != null and appState != ''">
+				appstate=#{appState},
+			</if>
+			<if test="remark != null and remark != ''">
+				remark=#{remark},
+			</if>
+			<if test="cState != null and cState != ''">
+				cstate=#{cState},
+			</if>
+			<if test="appTime != null and appTime != ''">
+				apptime=#{appTime},
+			</if>
+		</set>
+		where lid=#{lId}
+	</update>
+</mapper>

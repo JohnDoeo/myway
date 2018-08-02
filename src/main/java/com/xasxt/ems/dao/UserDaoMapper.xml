@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.xasxt.ems.dao.UserDaoMapper">
+
+	<sql id="commsql">
+		select tu.uid,tu.uname,tu.upass,tr.rname,tr.rdesc 
+		from t_user tu left join t_user_role tur on tu.uid=tur.uid 
+		left join t_role tr on tur.rid=tr.rid 
+	</sql>
+	
+	<select id="login" resultMap="userMapper">
+		<include refid="commsql"/>
+		<where>
+			<if test="uName != null and uName !=''">
+				tu.uname=#{uName}
+			</if>
+		</where>
+	</select>
+
+	<select id="getUserCount" resultType="int">
+		select count(*) from t_user
+	</select>
+
+	<select id="findUserWithPage" resultMap="userMapper">
+		<include refid="commsql"/>
+		where tu.uname <![CDATA[ <> ]]>
+		'admin'
+		limit #{page},#{rows}
+	</select>
+	
+	<select id="getUserInfoById" resultMap="userMapper">
+		<include refid="commsql"/>
+		where tu.uid=#{uId}
+	</select>
+	
+	<insert id="addUserInfo">
+		insert into t_user(uname,upass) values(#{uName},#{uPass})
+	</insert>
+	
+	<update id="removeUserInfo">
+		delete from t_user where uid=#{uId}
+	</update>
+	
+	<update id="editUserInfo">
+		update t_user set uname=#{uName},upass=#{uPass} where uid=#{uId}
+	</update>
+	
+	<update id="delRoleInfoByUserId">
+		DELETE FROM t_user_role WHERE uId=#{uId}
+	</update>
+	
+	<select id="findAllRoleInfo" resultType="Role">
+		SELECT * FROM t_role
+	</select>
+	
+	<insert id="addUserOfRoleInfo">
+		INSERT INTO t_user_role(uid,rid) VALUES(#{uId},#{rId})
+	</insert>
+
+	<resultMap type="User" id="userMapper">
+		<id property="uId" column="uid" />
+		<result property="uName" column="uname" />
+		<result property="uPass" column="upass" />
+		<collection property="roleList" ofType="Role">
+			<id property="rId" column="rid" />
+			<result property="rName" column="rname" />
+			<result property="rDesc" column="rdesc" />
+		</collection>
+	</resultMap>
+</mapper>
